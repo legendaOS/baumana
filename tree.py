@@ -6,13 +6,18 @@ class NodeInterface(MessangerInterface):
     def Function():
         pass
 
-    def __init__(self, Parent = None, Child = None) -> None:
+    def __init__(self, name = None, Child = None, Parent = None) -> None:
         self.Parent = Parent
         self.Child = Child
+        self.name = name
 
 class Node(NodeInterface):
-    def __init__(self, Parent = None, Child = []) -> None:
-        super().__init__(Parent=Parent, Child=Child)
+    def __init__(self, Parent = None, Child = [], name = None) -> None:
+        super().__init__(Parent=Parent, Child=Child, name = name)
+
+    def insert(self, obj):
+        self.Child.append(obj)
+        obj.Parent = self
 
     def Function(self):
         pass
@@ -20,8 +25,8 @@ class Node(NodeInterface):
 class Product(NodeInterface):
     def __init__(self, Price = 0, Sale = 0, Available = True,
     Categories = [], Feedback  = [], Adress  = [], 
-    Parent = None, Child = None) -> None:
-        super().__init__(Parent=Parent, Child=Child)
+    Parent = None, Child = None, name = None) -> None:
+        super().__init__(Parent=Parent, Child=Child, name = name)
         self.Price = Price
         self.Sale = Sale
         self.Available = Available
