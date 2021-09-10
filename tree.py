@@ -15,7 +15,7 @@ class Node(NodeInterface):
     def __init__(self, Parent = None, Child = [], name = None) -> None:
         super().__init__(Parent=Parent, Child=Child, name = name)
 
-    def insert(self, obj):
+    def hopa(self, obj):
         self.Child.append(obj)
         obj.Parent = self
 
