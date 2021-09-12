@@ -14,7 +14,7 @@ def findelm(root, name):
 
 
 
-f = open('nodes.txt', 'r', encoding='UTF-8')
+f = open('СИИ/nodes.txt', 'r', encoding='UTF-8')
 
 
 root = t.Node(name = 'продукты')
@@ -28,7 +28,7 @@ for l in f:
     
     
 f.close()
-f = open('product.txt', 'r', encoding='UTF-8')
+f = open('СИИ/product.txt', 'r', encoding='UTF-8')
 for l in f:
     buf = l.split(';')
     buf[-1] = buf[-1].strip()
