@@ -53,5 +53,3 @@ class Sign():
             return -1
 
 
-
-BDProducts = Node()

@@ -32,10 +32,18 @@ f = open('product.txt', 'r', encoding='UTF-8')
 for l in f:
     buf = l.split(';')
     buf[-1] = buf[-1].strip()
-    cat = buf[4].split(',')
-    nnn = t.Product(buf[1], buf[2], bool(int(buf[3])), cat, buf[5], buf[6], None, None, buf[0])
-    nnn.Parent = kv[buf[-1]]
+    cat = buf[3].split(',')
+    # Price = 0, Sale = 0, Available = True,
+    # Categories = [], Feedback  = [], Adress  = [], 
+    # Parent = None, Child = None, name = None
+    dos = False
+    if buf[-1] == "True":
+        dos = True
+    buf_product = t.Product(buf[1], buf[2], dos, cat, buf[4], buf[5], name = buf[0])
+    b_categ = buf[6]
+    kv[b_categ].hopa(buf_product)
 
+print('end')
 
     
     
