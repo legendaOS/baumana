@@ -65,14 +65,13 @@ let categors = {
     'рыба':'продукты',
     'замороженная рыба':'заморозка',
     'полуфабрикаты':'заморозка',
-    'мясо':'заморозка',
     'консервы':'рыба',
     'рыбные продукты':'рыба',
     'свежая рыба':'рыба',
     'товары для животных':'для дома',
     'бытовая химия':'для дома',
     'товары для детей':'для дома',
-    'cоки':'напитки',
+    'соки':'напитки',
     'алкоголь':'напитки',
     'воды':'напитки',
     'свежевыжатые':'соки',
@@ -85,10 +84,10 @@ let categors = {
 }
 
 let prods = [
-    'чебупели;120;15;заморозка,мясо;отлично;Пушкина;заморозка;True',
-    'хотдогстеры;110;10;заморозка,мясо;отлично;Пушкина;заморозка;True',
-    'круглетсы;100;5;заморозка,мясо;отлично;Пушкина;заморозка;True',
-    'пельмени;300;0;заморозка,мясо;хорошо;Лермонтова;мясо;True',
+    'чебупели;120;15;заморозка,полуфабрикаты;отлично;Пушкина;полуфабрикаты;True',
+    'хотдогстеры;110;10;заморозка,полуфабрикаты;отлично;Пушкина;полуфабрикаты;True',
+    'круглетсы;100;5;заморозка,полуфабрикаты;отлично;Пушкина;полуфабрикаты;True',
+    'пельмени;300;0;заморозка,полуфабрикаты;хорошо;Лермонтова;полуфабрикаты;True',
     'замороженная селедка;500;0;заморозка,рыба;хорошо;Лермонтова;замороженная рыба;True',
     'замороженная камбала;200;6;заморозка,рыба;хорошо;Лермонтова;замороженная рыба;True',
     'замороженная креветка;10;0;заморозка,рыба;хорошо;Лермонтова;замороженная рыба;True',
@@ -139,7 +138,6 @@ let root = new Node('продукты')
 let tree_map = {'продукты':root}
 
 for(i in categors){
-    console.log(i)
     buf_node = new Node(i)
     buf_par_name = categors[i]
     tree_map[i] = buf_node
@@ -149,7 +147,6 @@ for(i in categors){
 }
 
 
-console.log('asdasd')
 /* наполнение нод листками */
 
 for(prod of prods){
@@ -160,5 +157,116 @@ for(prod of prods){
     buf_prod = new Product(buf[0], buf[1], buf[2], av,split_str(buf[3], ','), buf[4], buf[5])
     tree_map[buf[6]].appended(buf_prod)
     buf_prod.parpend(tree_map[buf[6]])
-    console.log(buf_prod)
 }
+
+console.log('Дерево')
+console.log(root)
+
+function delete_start_space(stroka){
+    buf = ''
+    flag = false
+    for(i of stroka){
+        if(i != ' '){
+            flag = true
+        }
+        if(flag){
+            buf += i
+        }
+    }
+    return buf
+}
+
+
+function lol(t){
+
+            if(t.attr('activated') == 0)
+            {
+                let inhtml
+                if(t.attr('class') == 'name')
+                {
+                    console.log('123')
+                
+                    map_name = delete_start_space(t.attr('map_name'))
+                    console.log(map_name)
+                    
+
+                    
+                    inhtml = `<ul>`
+                    for(elm of tree_map[map_name].Childrens){
+                        let c_name
+                        if(elm.constructor.name == 'Node'){
+                            c_name = 'name'
+                        }
+                        else{
+                            c_name = 'nnnnn'
+                        }
+                        inhtml +=   `
+                                        <li>
+                                            <h3 class = '${c_name}' map_name = '${elm.Name}' activated = '0' onclick = 'lol($(this))'>
+                                                ${elm.Name} -> ${elm.constructor.name}
+                                            </h3>
+                                        </li>
+                                    `
+                    }
+                    inhtml += `</ul>`
+                
+                
+                
+                }
+                else{
+                    inhtml =    `
+                                    <ul>
+                                        <li>Цена - ${elm.Price}</li>
+                                        <li>Скидка - ${elm.Sale}</li>
+                                        <li>Доступность - ${elm.Available}</li>
+                                        <li>Категории - ${elm.Categories}</li>
+                                        <li>Отзыв - ${elm.Feedback}</li>
+                                        <li>Адрес - ${elm.Adress}</li>
+                                    </ul>
+                                `
+                }
+
+                t.after(inhtml)
+                t.attr('activated', 1)
+            
+            }
+            else{
+                t.next().html('')
+                t.attr('activated', 0)
+            }
+}
+
+
+$(document).ready(function () {
+    let unvision = true
+
+    $('#btn').click(function () {
+        if(unvision){
+            let inhtml = `
+                        <ul>
+                            <h3 class = 'name' map_name = ' ${tree_map['продукты'].Name}' activated = '0' onclick = 'lol($(this))'>
+                                ${tree_map['продукты'].Name} -> ${tree_map['продукты'].constructor.name}
+                            </h3> 
+                        </ul>
+                        ` 
+            $("#main").html(inhtml)
+            unvision = false
+        }
+        else{
+            $("#main").html('')
+            unvision = true
+        }
+        
+    })
+
+    $(".name").click(function(){
+        console.log('asd')
+        let inhtml = `
+                    haha
+                    haha
+                    haha
+                    `
+        let t = $(this)
+        console.log(t)
+    })
+})
