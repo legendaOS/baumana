@@ -136,6 +136,7 @@ let prods = [
 
 let root = new Node('продукты')
 let tree_map = {'продукты':root}
+let product_map = {}
 
 for(i in categors){
     buf_node = new Node(i)
@@ -157,6 +158,7 @@ for(prod of prods){
     buf_prod = new Product(buf[0], buf[1], buf[2], av,split_str(buf[3], ','), buf[4], buf[5])
     tree_map[buf[6]].appended(buf_prod)
     buf_prod.parpend(tree_map[buf[6]])
+    product_map[buf_prod.Name] = buf_prod
 }
 
 console.log('Дерево')
@@ -184,7 +186,6 @@ function lol(t){
                 let inhtml
                 if(t.attr('class') == 'name')
                 {
-                    console.log('123')
                 
                     map_name = delete_start_space(t.attr('map_name'))
                     console.log(map_name)
@@ -258,15 +259,123 @@ $(document).ready(function () {
         }
         
     })
-
-    $(".name").click(function(){
-        console.log('asd')
-        let inhtml = `
-                    haha
-                    haha
-                    haha
-                    `
-        let t = $(this)
-        console.log(t)
-    })
 })
+
+/* меры близости*/
+
+let measure =   {
+                    'tree_cmp':'Расстояние по дереву',
+                    'manheth':'Манхэттенское расстояние',
+                    'evklid':'Евклидово расстояние',
+                    'hemminga': 'Расстояние Хэмминга'
+                }
+
+
+let adress_len = [
+    ['-',           'Пушкина', 'Лермонтова', 'Достоевского'],
+    ['Пушкина',         0,          10,           20       ],
+    ['Лермонтова',     10,           0,           15       ],
+    ['Достоевского',   20,          15,           0        ]
+]
+
+function subtract_adress(adr1, adr2){
+    a = 0
+    for(zn of adress_len[0]){
+        if (zn == adr1) break
+        a++
+    }
+    b = 0
+    buf_arr = []
+    for(i of adress_len){
+        buf_arr.push(i[0])
+    }
+    for(zn of buf_arr){
+        if (zn == adr2) break
+        b++
+    }
+    
+    return adress_len[a][b]
+}
+
+let fed_val = {
+    'отлично':5,
+    'хорошо':4,
+    'нормально':3,
+}
+
+function cmp(obj1, obj2, type_of_cmp){
+    /* по дереву */
+    if(type_of_cmp == 'tree_cmp'){
+        let obj1patch = []
+        let obj2patch = []
+        let buf1par = obj1.Parent
+        let buf2par = obj2.Parent
+
+        while(buf1par != undefined){
+            obj1patch.push(buf1par)
+            buf1par = buf1par.Parent
+        }
+        while(buf2par != undefined){
+            obj2patch.push(buf2par)
+            buf2par = buf2par.Parent
+        }
+
+        let p1
+        let p2
+
+        while(true){
+            p1 = obj1patch.pop()
+            p2 = obj2patch.pop()
+            if(p1 != p2 || p1 == undefined || p2 == undefined){
+                if(p1 != undefined) obj1patch.push(p1)
+                if(p2 != undefined) obj2patch.push(p2)
+                break
+            }
+        }
+        return(obj1patch.length + obj2patch.length + 2)
+    }
+
+    /* Манхеттена */
+    /* сумме модулей разностей их координат. */
+
+    if(type_of_cmp == 'manheth'){
+        let ret = 0
+        ret += Math.abs(obj1.Price) - Math.abs(obj2.Price)
+        ret += Math.abs(obj1.Sale) - Math.abs(obj2.Sale)
+        ret += Math.abs(obj1.Available) - Math.abs(obj2.Available)
+        ret += Math.abs(fed_val[obj1.Feedback]) - Math.abs(fed_val[obj2.Feedback])
+        ret += subtract_adress(obj1.Adress, obj2.Adress)
+
+        return ret
+    }
+
+    /* Евклида */
+
+    if(type_of_cmp == 'evklid'){
+        let ret = 0
+        ret += Math.pow((Math.abs(obj1.Price) - Math.abs(obj2.Price)), 2) 
+        ret += Math.pow((Math.abs(obj1.Sale) - Math.abs(obj2.Sale)), 2) 
+        ret += Math.pow((Math.abs(obj1.Available) - Math.abs(obj2.Available)), 2) 
+        ret += Math.pow((Math.abs(fed_val[obj1.Feedback]) - Math.abs(fed_val[obj2.Feedback])), 2) 
+        ret += Math.pow((subtract_adress(obj1.Adress, obj2.Adress)), 2) 
+        ret = Math.sqrt(ret)
+
+        return ret
+    }
+
+    /* Хэмминга */
+    /* число позиций, в которых соответствующие символы двух слов одинаковой длины различны */
+
+    if(type_of_cmp == 'hemminga'){
+        let ret = 0
+        ret += obj1.Price == obj2.Price ? 0 : 1
+        ret += obj1.Sale == obj2.Sale ? 0 : 1
+        ret += obj1.Available == obj2.Available ? 0 : 1
+        ret += obj1.Feedback == obj2.Feedback ? 0 : 1 
+        ret += obj1.Adress == obj2.Adress ? 0 : 1 
+
+        return ret
+    }
+
+
+}
