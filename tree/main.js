@@ -161,8 +161,12 @@ for(prod of prods){
     product_map[buf_prod.Name] = buf_prod
 }
 
+//предвывод в консоль
+
 console.log('Дерево')
 console.log(root)
+console.log('Продукты')
+console.log(product_map)
 
 function delete_start_space(stroka){
     buf = ''
@@ -264,10 +268,11 @@ $(document).ready(function () {
 /* меры близости*/
 
 let measure =   {
-                    'tree_cmp':'Расстояние по дереву',
-                    'manheth':'Манхэттенское расстояние',
-                    'evklid':'Евклидово расстояние',
-                    'hemminga': 'Расстояние Хэмминга'
+                    'Расстояние по дереву':'tree_cmp',
+                    'Манхэттенское расстояние':'manheth',
+                    'Евклидово расстояние':'evklid',
+                    'Расстояние Хэмминга':'hemminga',
+                    'Расстояние Чебышева':'chebichev'
                 }
 
 
@@ -301,6 +306,13 @@ let fed_val = {
     'отлично':5,
     'хорошо':4,
     'нормально':3,
+}
+
+let count_mer = 5
+
+function find_name(elem){
+    a = elem
+    for(i = 0; i < count_mer; i++){if(a[i].checked){return(a[i].value)}}
 }
 
 function cmp(obj1, obj2, type_of_cmp){
@@ -340,10 +352,10 @@ function cmp(obj1, obj2, type_of_cmp){
 
     if(type_of_cmp == 'manheth'){
         let ret = 0
-        ret += Math.abs(obj1.Price) - Math.abs(obj2.Price)
-        ret += Math.abs(obj1.Sale) - Math.abs(obj2.Sale)
-        ret += Math.abs(obj1.Available) - Math.abs(obj2.Available)
-        ret += Math.abs(fed_val[obj1.Feedback]) - Math.abs(fed_val[obj2.Feedback])
+        ret += Math.abs(obj1.Price - obj2.Price)
+        ret += Math.abs(obj1.Sale - obj2.Sale)
+        ret += Math.abs(obj1.Available - obj2.Available)
+        ret += Math.abs(fed_val[obj1.Feedback] - fed_val[obj2.Feedback])
         ret += subtract_adress(obj1.Adress, obj2.Adress)
 
         return ret
@@ -353,10 +365,10 @@ function cmp(obj1, obj2, type_of_cmp){
 
     if(type_of_cmp == 'evklid'){
         let ret = 0
-        ret += Math.pow((Math.abs(obj1.Price) - Math.abs(obj2.Price)), 2) 
-        ret += Math.pow((Math.abs(obj1.Sale) - Math.abs(obj2.Sale)), 2) 
-        ret += Math.pow((Math.abs(obj1.Available) - Math.abs(obj2.Available)), 2) 
-        ret += Math.pow((Math.abs(fed_val[obj1.Feedback]) - Math.abs(fed_val[obj2.Feedback])), 2) 
+        ret += Math.pow((obj1.Price - obj2.Price), 2) 
+        ret += Math.pow((obj1.Sale - obj2.Sale), 2) 
+        ret += Math.pow((obj1.Available - obj2.Available), 2) 
+        ret += Math.pow((fed_val[obj1.Feedback] - fed_val[obj2.Feedback]), 2) 
         ret += Math.pow((subtract_adress(obj1.Adress, obj2.Adress)), 2) 
         ret = Math.sqrt(ret)
 
@@ -378,4 +390,167 @@ function cmp(obj1, obj2, type_of_cmp){
     }
 
 
+    /* Расстояние Чебышева */
+    /* Расстоянием Чебышёва между n-мерными числовыми векторами называется максимум модуля разности компонент этих векторов.  */
+
+    if(type_of_cmp == 'chebichev'){
+        let ret = 0
+        buf = Math.abs(obj1.Price) - Math.abs(obj2.Price)
+        ret = buf > ret ? buf : ret
+        buf = Math.abs(obj1.Sale) - Math.abs(obj2.Sale)
+        ret = buf > ret ? buf : ret
+        buf = Math.abs(obj1.Available) - Math.abs(obj2.Available)
+        ret = buf > ret ? buf : ret
+        buf = (Math.abs(fed_val[obj1.Feedback]) - Math.abs(fed_val[obj2.Feedback]))
+        ret = buf > ret ? buf : ret
+        buf = subtract_adress(obj1.Adress, obj2.Adress)
+        ret = buf > ret ? buf : ret
+
+        return ret
+    }
+
+
 }
+
+
+let keys_cpm_vect = 
+{
+    'Ближайший сосед':'near_sosed',
+    'Дальний сосед':'far_sosed',
+    'Cредней связи':'sred_svas'
+}
+
+function cpm_vect(obj, array_of_obj, type_of_cmp, type_of_cmp_vect){
+    if (type_of_cmp_vect == 'near_sosed'){
+        let brr = []
+        for(i of array_of_obj){
+            brr.push(cmp(obj, i, type_of_cmp))
+        }
+        return(Math.min(...brr))
+    }
+    
+    if (type_of_cmp_vect == 'far_sosed'){
+        let brr = []
+        for(i of array_of_obj){
+            brr.push(cmp(obj, i, type_of_cmp))
+        }
+        return(Math.max(...brr))
+    }
+
+    if (type_of_cmp_vect == 'sred_svas'){
+        let brr = 0
+        let countbrr = 0
+        for(i of array_of_obj){
+            brr += cmp(obj, i, type_of_cmp)
+            countbrr++
+        }
+        brr = brr / countbrr
+
+        return brr
+    }
+
+
+}
+
+
+
+$('#btn2').click(function(){
+    mera = find_name($('.n1'))
+    p1 = product_map[$("#p1").val()]
+    p2 = product_map[$("#p2").val()]
+
+    $("#rasst").html(cmp(p1, p2, measure[mera]))
+})
+
+
+$("#btn3").click(function(){
+
+    let mera = find_name($('.n1'))
+    let ppp = product_map[$("#p3").val()]
+
+    let ret = []
+
+    for(buf_name in product_map){
+        if(buf_name == ppp.Name) continue
+       product_map[buf_name]
+       measure[mera]
+       treerttre = cmp(ppp, product_map[buf_name], measure[mera])
+
+       ret.push([treerttre, buf_name])
+    }
+
+    ret.sort(function(a,b){return a[0] - b[0]})
+
+    let ihtml = `<ul>`
+
+    for(i of ret){
+        ihtml += `<li> ${i[1]}  -- <strong>${i[0]}</strong> </li>`
+    }
+
+    ihtml += `</ul>`
+
+    $("#rasst").html(ihtml)
+})
+
+
+function ins_af_b(elm){
+    inh = `
+    <input type="text" class = 'm1' placeholder="Продукт"> 
+    <input type="button" value="Добавить" class="m2" onclick = 'ins_af_b($(this))' >
+    `
+    elm.after(inh)
+}
+
+function fnd_mr(elem){
+    a = elem
+    for(i = 0; i < elem.length; i++){if(a[i].checked){return(a[i].value)}}
+}
+
+function get_znach(class_obj){
+    res = []
+    for(i = 0; i < class_obj.length; i++){
+        res.push(class_obj[i].value)
+    }
+    return res
+}
+
+
+$("#btn4").click(function(){
+    let mera = fnd_mr($('.n1'))
+    let mera_nebin = fnd_mr($('.n2'))
+
+    let objes = get_znach($('.m1'))
+
+    let arrObjMeriNeBin = []
+    for(e of objes){
+        arrObjMeriNeBin.push(product_map[e])
+    }
+
+
+    //to do
+    //тупа пробросить cmp на каждый из списка 
+    //от каждого из мапы продуктов
+
+    let names = get_znach($('.m1'))
+
+    let ret = []
+
+    for(objfind in product_map){
+        buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
+        ret.push([buffer__, objfind])
+    }
+
+    ret.sort(function(a,b){return a[0] - b[0]})
+
+    let ihtml = `<ul>`
+
+    for(i of ret){
+        ihtml += `<li> ${i[1]}  -- <strong>${i[0]}</strong> </li>`
+    }
+
+    ihtml += `</ul>`
+
+    $("#rasst").html(ihtml)
+
+
+})
