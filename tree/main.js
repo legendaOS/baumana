@@ -32,6 +32,8 @@ class Product{
     }
 }
 
+let dislikes = {}
+
 
 function split_str(stroka, symbol) {
     let positions = []
@@ -471,12 +473,15 @@ $("#btn3").click(function(){
     let ret = []
 
     for(buf_name in product_map){
+        if(buf_name in dislikes){}
+        else{
         if(buf_name == ppp.Name) continue
        product_map[buf_name]
        measure[mera]
        treerttre = cmp(ppp, product_map[buf_name], measure[mera])
 
        ret.push([treerttre, buf_name])
+        }
     }
 
     ret.sort(function(a,b){return a[0] - b[0]})
@@ -536,11 +541,16 @@ $("#btn4").click(function(){
     let ret = []
 
     for(objfind in product_map){
+        if(objfind in dislikes){}
+        else{
         buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
         ret.push([buffer__, objfind])
+        }
     }
 
     ret.sort(function(a,b){return a[0] - b[0]})
+
+ 
 
     let ihtml = `<ul>`
 
@@ -551,6 +561,41 @@ $("#btn4").click(function(){
     ihtml += `</ul>`
 
     $("#rasst").html(ihtml)
+
+
+})
+
+
+$("#btn5").click(function(){
+    let prod = $("#p4").val()
+    prod = product_map[prod]
+
+
+    ret = [] // ха-ха
+    res = [] // обьяснять тебе никто не будет что делаю эти переменные
+
+    for(buf_name in product_map){
+        if(buf_name == prod.Name) continue
+       treerttre = cmp(prod, product_map[buf_name], 'tree_cmp')
+
+       ret.push([treerttre, buf_name])
+    }
+
+    for(i = 0; i < ret.length; i++){
+        if(ret[i][0] == 2){
+            res.push(ret[i])
+        }
+    }
+    
+
+    for(i of res){
+        dislikes[product_map[i[1]].Name] = undefined
+    }
+
+    dislikes[prod.Name] = undefined
+
+    console.log(dislikes)
+
 
 
 })
