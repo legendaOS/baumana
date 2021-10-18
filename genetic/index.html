@@ -13,13 +13,18 @@
     <div id="first">
         <span id="main" class="string"></span><br>
         <span id="random" class="string"></span><br>
+        <input type="text" id = "replval"><input value="Изменить текст" type="button" id="replbut"><br>
         <input type="range" id="paramFirst" class = 'params' step="1"><br>
         <span class="string" id="paramFirstVal"> </span><br><br>
         <input type="range" id="param2" class = 'params' step="1"><br>
         <span class="string" id="param2Val"> </span><br><br>
-        <input type="button" value="Решить">
+        <input type="range" id="param3" class = 'params' step="1"><br>
+        <span class="string" id="param3Val"> </span><br><br>
+        <input type="button" value="Решить" id = 'resb'>
 
     </div>
+
+    <canvas id="popChart" width="600" height="400"></canvas>
 
     <!-- JS -->
     <script src = './jquery-3.6.0.min.js'></script>
