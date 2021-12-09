@@ -20,7 +20,8 @@
     <input class="n1" value="Манхэттенское расстояние" name = 'n1' type="radio">Манхэттенское расстояние <br> 
     <input class="n1" value="Евклидово расстояние" name = 'n1' type="radio">Евклидово расстояние     <br> 
     <input class="n1" value="Расстояние Хэмминга" name = 'n1' type="radio">Расстояние Хэмминга <br> 
-    <input class="n1" value="Расстояние Чебышева" name = 'n1' type="radio">Расстояние Чебышева <br>  
+    <input class="n1" value="Расстояние Чебышева" name = 'n1' type="radio">Расстояние Чебышева <br>
+    <input class="n1" value="Комплексное" name = 'n1' type="radio">Комплексное <br>  
 
     <hr>
 
@@ -56,7 +57,23 @@
 
     <hr>
 
+    Максимальная цена <input type="text" id = 'tt1' value = '1000'><br>
+    Мининальная цена <input type="text" id = 'tt2' value = '0'><br>
+    Скидка больше <input type="text" id = 'tt3' value = '0'><br>
+    Доступно (да\нет) <input type="text" id = 'tt4' value="да"> <br>
+    Отзыв (отлично, хорошо, нормально) <input type="text" id = 'tt5' value="хорошо"> <br>
+
+    <hr>
+
+    <div id="sorted"></div>
     <div id="rasst"></div>
+
+    <hr>
+
+    <input type="text" id = 'val_to_ii' size="100">
+    <input type="button" id = 'sbm_ii' value="Отправить">
+    <div id = 'result_to_ii'></div>
+    
 
     <div id="main"></div>
     <script src = './jquery-3.6.0.min.js'></script>

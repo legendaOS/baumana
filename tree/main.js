@@ -133,6 +133,84 @@ let prods = [
     'Напиток б/а чай Липтон Лимон;70;0;лимонады,воды,напитки;отлично;Пушкина;лимонады;True'
 ]
 
+let paramsToSort = {
+    Price: {min: 0, max:1000000},
+    Sale: 0,
+    Available: true,
+    Feedback: 'отлично'
+}
+
+function sortRet(arrayOfObj, params){
+    let ret = []
+    
+
+    for(let productElm of arrayOfObj){
+        let currentProd = product_map[productElm[1]]
+
+        console.log(currentProd)
+
+        let curParams = {}
+        for(let param in params){
+            curParams[param] = false
+        }
+
+        
+        
+        for(let param in curParams){
+
+            if(param == 'Price')
+            {
+                let pmin = params[param]['min'] ? params[param]['min'] : 0
+                let pmax = params[param]['max'] ? params[param]['max'] : 9999999
+                if(+currentProd['Price'] >= pmin && +currentProd['Price'] <= pmax)
+                {
+                    curParams[param] = true
+                }
+            }
+            if(param == "Sale")
+            {
+                let sal = params[param] ? params[param] : 0
+                if(+currentProd['Sale'] >= sal)
+                {
+                    curParams[param] = true
+                }
+            }
+            if(param == "Available")
+            {
+                let aval = params[param] ? params[param] : true
+                if(currentProd['Available'] == aval)
+                {
+                    curParams[param] = true
+                }                
+            }
+            if(param == "Feedback")
+            {
+                let pfid = params[param] ? params[param] : 'отлично'
+                if(currentProd['Feedback'] == pfid)
+                {
+                    curParams[param] = true
+                }                
+            }
+        }
+
+        let flag = true
+
+        for(let param in curParams)
+        {
+            
+            if(curParams[param] == false) flag = false
+        }
+
+        if(flag) ret.push(currentProd)
+
+
+    }
+
+
+    console.log('11', ret)
+    return ret
+}
+
 
 /* создание дерева из нод */
 
@@ -274,7 +352,8 @@ let measure =   {
                     'Манхэттенское расстояние':'manheth',
                     'Евклидово расстояние':'evklid',
                     'Расстояние Хэмминга':'hemminga',
-                    'Расстояние Чебышева':'chebichev'
+                    'Расстояние Чебышева':'chebichev',
+                    'Комплексное': 'complex'
                 }
 
 
@@ -310,7 +389,7 @@ let fed_val = {
     'нормально':3,
 }
 
-let count_mer = 5
+let count_mer = 6
 
 function find_name(elem){
     a = elem
@@ -318,6 +397,53 @@ function find_name(elem){
 }
 
 function cmp(obj1, obj2, type_of_cmp){
+    /* Комплексное */
+    /* 2 по дереву + манхеттн */
+
+    if(type_of_cmp == 'complex'){
+        let obj1patch = []
+        let obj2patch = []
+        let buf1par = obj1.Parent
+        let buf2par = obj2.Parent
+
+        while(buf1par != undefined){
+            obj1patch.push(buf1par)
+            buf1par = buf1par.Parent
+        }
+        while(buf2par != undefined){
+            obj2patch.push(buf2par)
+            buf2par = buf2par.Parent
+        }
+
+        let p1
+        let p2
+
+        while(true){
+            p1 = obj1patch.pop()
+            p2 = obj2patch.pop()
+            if(p1 != p2 || p1 == undefined || p2 == undefined){
+                if(p1 != undefined) obj1patch.push(p1)
+                if(p2 != undefined) obj2patch.push(p2)
+                break
+            }
+        }
+        let po_derevu = (obj1patch.length + obj2patch.length + 2) 
+
+        let ret = 0
+        ret += Math.abs(obj1.Price - obj2.Price)
+        ret += Math.abs(obj1.Sale - obj2.Sale)
+        ret += Math.abs(obj1.Available - obj2.Available)
+        ret += Math.abs(fed_val[obj1.Feedback] - fed_val[obj2.Feedback])
+        ret += subtract_adress(obj1.Adress, obj2.Adress)
+
+        let result = po_derevu * 10 + ret
+
+        return result
+
+    }
+
+
+
     /* по дереву */
     if(type_of_cmp == 'tree_cmp'){
         let obj1patch = []
@@ -470,6 +596,37 @@ $("#btn3").click(function(){
     let mera = find_name($('.n1'))
     let ppp = product_map[$("#p3").val()]
 
+    if(!ppp)
+    {
+        //костыль
+
+        let ptoSort1 = {
+            Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
+            Sale: +$('#tt3').val(),
+            Available: ($('#tt4').val() == 'да') ? true : false,
+            Feedback: $('#tt5').val()
+        }
+
+        let kostil = []
+        for(i in product_map) kostil.push([0, i])
+
+        let sortedRet = sortRet(kostil, ptoSort1)
+        
+        console.log(sortedRet)
+
+        let shtml = `Мы нашли продукты для вас <br> <ul>`
+
+        for(i of sortedRet){
+            shtml += `<li> ${i['Name']}</li>`
+        }
+
+        shtml += `</ul>`
+        
+        $('#sorted').html(shtml)
+
+        return 0
+    }
+
     let ret = []
 
     for(buf_name in product_map){
@@ -485,6 +642,46 @@ $("#btn3").click(function(){
     }
 
     ret.sort(function(a,b){return a[0] - b[0]})
+
+    let ptoSort = {
+        Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
+        Sale: +$('#tt3').val(),
+        Available: ($('#tt4').val() == 'да') ? true : false,
+        Feedback: $('#tt5').val()
+    }
+
+    console.log(ptoSort)
+
+
+    let sortedRet = sortRet(ret, ptoSort)
+    
+
+    if(sortedRet.length > 0)
+    {
+        let shtml = `Мы нашли продукты для вас <br> <ul>`
+
+        for(i of sortedRet){
+            shtml += `<li> ${i['Name']}</li>`
+        }
+
+        shtml += `</ul>`
+        
+        $('#sorted').html(shtml)
+    }
+    else{
+        let shtml = `Нет ничего подходящего, но возможно вам понравится <br> <ul>`
+
+        for(let t = 0; t < 5; t++){
+            shtml += `<li> ${ret[t][1]}</li>`
+        }
+
+        shtml += `</ul>`
+        
+        $('#sorted').html(shtml)
+    }
+
+    
+
 
     let ihtml = `<ul>`
 
@@ -550,7 +747,41 @@ $("#btn4").click(function(){
 
     ret.sort(function(a,b){return a[0] - b[0]})
 
- 
+    let ptoSort = {
+        Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
+        Sale: +$('#tt3').val(),
+        Available: ($('#tt4').val() == 'да') ? true : false,
+        Feedback: $('#tt5').val()
+    }
+
+    console.log('111111111111111111', ret)
+
+    let sortedRet = sortRet(ret, ptoSort)
+    
+
+    if(sortedRet.length > 0)
+    {
+        let shtml = `Мы нашли продукты для вас <br> <ul>`
+
+        for(i of sortedRet){
+            shtml += `<li> ${i['Name']}</li>`
+        }
+
+        shtml += `</ul>`
+        
+        $('#sorted').html(shtml)
+    }
+    else{
+        let shtml = `Нет ничего подходящего, но возможно вам понравится <br> <ul>`
+
+        for(let t = 0; t < 5; t++){
+            shtml += `<li> ${ret[t][1]}</li>`
+        }
+
+        shtml += `</ul>`
+        
+        $('#sorted').html(shtml)
+    }
 
     let ihtml = `<ul>`
 
@@ -596,6 +827,566 @@ $("#btn5").click(function(){
 
     console.log(dislikes)
 
-
-
 })
+
+
+
+    /* с этого момента начинается диалоговая система */
+    /* поздравляю */
+
+    $("#sbm_ii").click(function(){
+        let dat_ii = $("#val_to_ii").val()
+        let a = create_shema(dat_ii)
+        console.log(a)
+        let b = create_semant_from_shema(a)
+        console.log(b)
+        $("#result_to_ii").html(create_res_from_semant(b))        
+    })
+
+    
+    
+
+
+class Term{
+    constructor(type, value){
+        this.type = type
+        this.value = value
+    }
+}
+
+
+
+
+let term_categor = {
+    'товар':'продукты',
+    'проду':'продукты',
+"замор":'заморозка',
+"бакал":'бакалея',
+"дом":'для дома',
+"питье":'напитки',
+'рыб':'замороженная рыба',
+"фабр":'полуфабрикаты',
+"жив":'товары для животных',
+"корм":'товары для животных',
+'быт':'бытовая химия',
+'хим':'бытовая химия',
+'дет':'товары для детей',
+
+'алк':
+['алкоголь','крепкий алкоголь',
+'пивные напитки'],
+'вод':['воды','минеральная вода',
+'негазированная вода',
+'лимонады'],
+
+'сок':
+['соки','свежевыжатые',
+'сок в упаковке',
+]
+}
+
+
+let term_products = {
+
+'чебуп':'чебупели',
+"хотдогст":'хотдогстеры',
+"круглетс":'круглетсы',
+"пельмен":'пельмени',
+"сел":'замороженная селедка',
+"камбал":'замороженная камбала',
+"кревет":'замороженная креветка',
+
+"хлеб": 
+['белый хлеб', 'черный хлеб'],
+"пер":'перец',
+
+'корм': 
+['Корм для кошек индейка желе',
+'Голд Корм для кош паштет курица',
+'Kitekat Корм для кошек c говядина в соусе'],
+
+'Средств':
+['Средство для унитаза Domestos ультраблеск',
+'Mr. Proper Жидкость моющая для полов и стен Лимон',
+'Пемолюкс Порошок чистящий Ослепительный белый'],
+
+'детск':[
+    'Фрутоняня Пюре Салатик из фруктов',
+    'Фрутоняня Пюре Яблоко Груша',
+    'Фрутоняня Пюре Фруктовый салатик'
+],
+
+'питан':[
+'Фрутоняня Пюре Салатик из фруктов',
+'Фрутоняня Пюре Яблоко Груша',
+'Фрутоняня Пюре Фруктовый салатик'],
+
+'сок':[
+'Свежевыжатый сок апельсин',
+'Свежевыжатый сок яблоко',
+'Свежевыжатый сок ананас',
+'Сады придонья Сок яблочный натуральный свежеотжат',
+'Любимый Напиток Апельсин/ Манго/ Мандарин',
+'J7 Сок апельсиновый',
+'Свежевыжатый сок апельсин'
+],
+
+'вод':[
+    'Вода питьевая Святой Источник негаз',
+    'Вода природная питьевая Святой Источник',
+    'Мин. питьевая вода Пилигрим',
+    'Мин. питьевая вода Боржоми газ',
+    'Вода питьевая Аква Минерале газ',
+    'Вода питьевая Святой Источник газ'
+],
+
+'водк':[
+'Водка Финляндия',
+'Водка Славянская мягкая на березовых почках',
+'Водка особая Хортиця Ультра Премиум',
+'Водка Медведь',
+'Водка Ах ты степь широкая'
+],
+
+'пив':[
+'Пиво Клаусталер Ориджинал светлое',
+'Пиво Шпатен Мюнхен',
+'Пиво Шпатен Мюнхен',
+'Пиво Будвайзер Будвар'
+],
+
+'лимон':[
+    'Напиток б/а чай Липтон Зеленый',
+'Сильногаз. напиток б/а Спрайт',
+'Сильногаз. напиток б/а Кока-Кола',
+'Сильногаз. напиток б/а Фанта',
+'Напиток б/а чай Липтон Лимон'
+],
+
+'напит':[
+    'Напиток б/а чай Липтон Зеленый',
+'Сильногаз. напиток б/а Спрайт',
+'Сильногаз. напиток б/а Кока-Кола',
+'Сильногаз. напиток б/а Фанта',
+'Напиток б/а чай Липтон Лимон'
+]
+
+}
+
+let cross = {
+    //поиск
+    'q':'do',
+    'price':'do',
+    'feed': 'do',
+    'find':'do',
+    //условия
+    'little': 'price',
+    'big':'price',
+
+    'best':'feed',
+    'good':'feed',
+    'norm':'feed'
+}
+
+let trem_q = {
+    'как': 'q',
+    'цен': 'price',
+    'стои': 'price',
+    'скольк': 'price',
+    'отзы':'feed',
+    'рейт':'feed',
+    'выбе':'find',
+    'пока':'find',
+    'най':'find',
+    'ест': 'find'
+}
+
+let to_price = {
+    'деш': 'little',
+    'дорог': 'big',
+}
+
+let to_feed = {
+    'отли' : 'best',
+    'хорош' : 'good',
+    'норма' : 'norm'
+}
+
+function find_categor(s){
+    //поиск в категориях
+    for(bname in term_categor){
+        if(s.includes(bname)){
+            return({type: 'categor', value: term_categor[bname]})
+        }
+    }
+    return 0
+}
+
+function find_prod(s){
+    //поиск в товарах
+    for(bname in term_products){
+        if(s.includes(bname)){
+            return({type: 'product', value: term_products[bname]})
+        }
+    }
+    return 0
+}
+
+function find_q(s){
+    //поиск в вопросах
+    for(bname in trem_q){
+        if (s.includes(bname)){
+            return({type: 'q', value: trem_q[bname]})
+        }
+    }
+    return 0
+}
+
+function find_q_price(s){
+    //поиск в вопросах
+    for(bname in to_price){
+        if (s.includes(bname)){
+            return({type: 'price', value: to_price[bname]})
+        }
+    }
+    return 0
+}
+
+function find_q_feed(s){
+    //поиск в вопросах
+    for(bname in to_feed){
+        if (s.includes(bname)){
+            return({type: 'feed', value: to_feed[bname]})
+        }
+    }
+    return 0
+}
+
+function create_shema(s){
+    let arr = s.split(' ')
+    let shema = []
+    let buf
+    for(el of arr){
+        console.log(el)
+        buf = find_q(el)
+        if(buf) {shema.push(buf); continue}
+        buf = find_q_price(el)
+        if(buf) {shema.push(buf); continue}
+        buf = find_q_feed(el)
+        if(buf) {shema.push(buf); continue}
+        buf = find_categor(el)
+        if(buf) {shema.push(buf); continue}
+        buf = find_prod(el)
+        if(buf) {shema.push(buf); continue}
+    }
+    return shema
+}
+
+function create_semant_from_shema(shema){
+    let semant = {
+        do: [],
+        where: [],
+        categor: [],
+        products: []
+    }
+
+    for(elm of shema){
+        if(elm['type'] == 'q')
+        {
+            semant['do'].push({what:cross[elm['value']], who:elm['value']})
+        }
+        if(elm['type'] == 'price')
+        {
+            semant['where'].push({what:cross[elm['value']], who:elm['value']})
+        }
+        if(elm['type'] == 'feed')
+        {
+            semant['where'].push({what:cross[elm['value']], who:elm['value']})
+        }
+        if(elm['type'] == 'categor')
+        {
+            semant['categor'].push(elm['value'])
+        }
+        if(elm['type'] == 'product')
+        {
+            semant['products'].push(elm['value'])
+        }
+
+    }
+
+        
+
+      //засунуть все в продукты
+
+      //все продукты
+
+      let buffer = []
+
+      for( elem of semant.products)
+      {
+          if(typeof(elem) == 'string')
+          {
+              buffer.push(product_map[elem])
+              console.log(elem)
+          }
+          else{
+              console.log('arr')
+              for(e of elem)
+              {
+                  buffer.push(product_map[e])
+              }
+          }
+      }
+
+      //все категории в продукты
+
+      let nod_buffer = []
+
+      for(elem of semant.categor)
+      {
+          if(typeof(elem) == 'string')
+          {
+            nod_buffer.push(tree_map[elem])
+          }
+          else{
+              for(e of elem)
+              {
+                  nod_buffer.push(tree_map[e])
+              }
+          }
+          
+      }
+
+      
+
+      let pbuf = get_all_products_from_nodes(nod_buffer)
+
+      for(elem of pbuf){
+          if(! buffer.includes(elem))
+          {
+              buffer.push(elem)
+          }
+      }
+      
+      semant.products = buffer
+
+
+
+        if(!semant['do'][0]){
+            semant['do'].push({what:'do', who: 'find'})
+        }
+
+    return semant
+}
+
+function create_res_from_semant(semant)
+{
+    let result
+
+    if(!semant.products[0]){
+        return('Извините, но я ничем не могу вам помочь, уточните вопрос')
+    }
+
+    for(let doing of semant['do'])
+    {
+        if(doing['what'] == 'do' && doing['who'] == 'find')
+        {
+            result = `у нас есть для вас: `
+
+            //действие - поиск
+            let count = 3
+            let i = 0
+            for(elem of semant.products)
+            {
+                result += `${elem.Name} за ${elem.Price}, `
+                i++
+                if(i > count) break
+            }
+
+        }
+        if(doing['what'] == 'do' && doing['who'] == 'price')
+        {
+            //если действие это поиск по цене
+
+            console.log('идет поиск по цене')
+
+            let mera = fnd_mr($('.n1'))
+            let mera_nebin = fnd_mr($('.n2'))
+
+            
+
+            let arrObjMeriNeBin = semant.products
+            
+
+            let ret = []
+
+            for(objfind in product_map){
+                if(objfind in dislikes){}
+                else{
+                buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
+                ret.push([buffer__, objfind])
+                }
+            }
+
+            ret.sort(function(a,b){return a[0] - b[0]})
+
+            //параметры под сортировочку
+
+            let ptoSort = {
+                Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
+                Sale: +$('#tt3').val(),
+                Available: ($('#tt4').val() == 'да') ? true : false,
+                Feedback: $('#tt5').val()
+            }
+
+            console.log(ptoSort)
+
+            let sortedRet = sortRet(ret, ptoSort)
+
+
+            let count = 3
+            let iii = 0
+            
+
+            if(sortedRet.length > 0)
+            {
+                result = `Мы нашли продукты для вас: `
+
+                for(i of sortedRet){
+                    result += ` ${i['Name']} ${i['Price']},`
+                    iii++;
+                    if(iii > count) break
+                }
+
+            }
+            else{
+                result = `Нет ничего подходящего, но возможно вам понравится <br>`
+
+                for(let t = 0; t < 5; t++){
+                    result += ` ${i['Name']} ${i['Price']}, `
+                    iii++;
+                    if(iii > count) break
+                }
+
+            }
+        }
+        if(doing['what'] == 'do' && doing['who'] == 'feed')
+        {
+            //если действие это поиск по отзыву
+
+            console.log('идет поиск по цене')
+
+            let mera = fnd_mr($('.n1'))
+            let mera_nebin = fnd_mr($('.n2'))
+
+            
+
+            let arrObjMeriNeBin = semant.products
+            
+
+            let ret = []
+
+            for(objfind in product_map){
+                if(objfind in dislikes){}
+                else{
+                buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
+                ret.push([buffer__, objfind])
+                }
+            }
+
+            ret.sort(function(a,b){return a[0] - b[0]})
+
+            //параметры под сортировочку
+
+            let ptoSort = {
+                Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
+                Sale: +$('#tt3').val(),
+                Available: ($('#tt4').val() == 'да') ? true : false,
+                Feedback: $('#tt5').val()
+            }
+
+            console.log(ptoSort)
+
+            let sortedRet = sortRet(ret, ptoSort)
+
+
+            let count = 3
+            let iii = 0
+            
+
+            if(sortedRet.length > 0)
+            {
+                result = `Мы нашли продукты для вас: `
+
+                for(i of sortedRet){
+                    result += ` ${i['Name']} ${i['Price']},`
+                    iii++;
+                    if(iii > count) break
+                }
+
+            }
+            else{
+                result = `Нет ничего подходящего, но возможно вам понравится <br>`
+
+                for(let t = 0; t < 5; t++){
+                    result += ` ${i['Name']} ${i['Price']}, `
+                    iii++;
+                    if(iii > count) break
+                }
+
+            }
+        }
+
+    }
+
+    return result
+}
+
+function get_all_products_from_nodes(nodes){
+    let ret_nod = []
+    let ret_prod = []
+    let buf_p_names = []
+
+    for(elm of nodes){
+        for(n of elm.Childrens){
+            if(n.constructor.name == 'Node')
+            {
+                ret_nod.push(n)
+            }
+            else{
+                ret_prod.push(n)
+            }
+        }
+    }
+
+    while(ret_nod[0])
+    {
+        let curnode = ret_nod.shift()
+     
+        let bc = curnode.Childrens
+        
+        for(i = 0; i < bc.length; i++)
+        {
+            if(bc[i].constructor.name == 'Node')
+            {
+                ret_nod.push(bc[i])
+            }
+            else
+            {
+                if(buf_p_names.includes(bc[i].Name))
+                {
+
+                }
+                else{
+                    buf_p_names.push(bc[i].Name)
+                    ret_prod.push(bc[i])
+                }
+            }
+        }
+        
+    }
+
+    return ret_prod
+}
+
+
