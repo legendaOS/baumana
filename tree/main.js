@@ -834,13 +834,86 @@ $("#btn5").click(function(){
     /* с этого момента начинается диалоговая система */
     /* поздравляю */
 
+    let vid = 'start'
+    let arr_buf
+    let buf_answer
+
     $("#sbm_ii").click(function(){
         let dat_ii = $("#val_to_ii").val()
-        let a = create_shema(dat_ii)
-        console.log(a)
-        let b = create_semant_from_shema(a)
-        console.log(b)
-        $("#result_to_ii").html(create_res_from_semant(b))        
+
+
+        if(vid == 'start')
+        {
+            //выдача
+
+            sh = create_shema(dat_ii)
+            sem = create_semant_from_shema(sh)
+            arr_of_res_prod = create_res_from_semant(sem)
+
+            if(typeof(arr_of_res_prod) == 'string')
+            {
+                $("#result_to_ii").html(arr_of_res_prod)
+            }
+
+            else
+            {
+                arr_buf = arr_of_res_prod.slice()
+
+                // закинуть все в дизлайки что бы выдача не выдавала их еще раз
+                let buf = 0
+                for(elm of arr_of_res_prod)
+                {
+                    dislikes[elm.Name] = undefined
+                    buf++
+                    if (buf > 4) break
+                }
+
+                // собираем ответ
+
+                html_re = `Мы нашли для вас следующие товары <br> Вас это устраивает? (напишите да или нет) <br> <ul>`
+
+                for(elm of arr_of_res_prod)
+                {
+                    //добавляем товарчики
+                    html_re += `<li> ${elm.Name} по цене ${elm.Price} с отзывами ${elm.Feedback} </li>`
+                }
+
+                html_re += `</ul>`
+
+                $("#result_to_ii").html(html_re)
+
+                vid = 'confirm'
+            }
+            
+
+        }
+
+        if(vid == 'confirm')
+        {
+            if(dat_ii == 'нет')
+            {
+                html_re = `очень жаль, в следующей выдаче не будет этих товаров!`
+                $("#result_to_ii").html(html_re)
+                vid = 'start'
+            }
+            if(dat_ii == 'да')
+            {
+                html_re = 'Отлично! всегда рады вам помочь, что-то еще?'
+                $("#result_to_ii").html(html_re)
+                //очистка дислайков
+                for (var variableKey in dislikes){
+                    if (dislikes.hasOwnProperty(variableKey)){
+                        delete dislikes[variableKey];
+                    }
+                }
+                //сначала
+                vid = 'start'
+            }
+            
+
+        }
+       
+           
     })
 
     
@@ -989,7 +1062,6 @@ let cross = {
 }
 
 let trem_q = {
-    'как': 'q',
     'цен': 'price',
     'стои': 'price',
     'скольк': 'price',
@@ -1012,10 +1084,32 @@ let to_feed = {
     'норма' : 'norm'
 }
 
+let metric = {
+    'от': 'start',
+    'до': 'end'
+}
+
+function isNumber(s)
+{
+    if(Number(s)) return true
+    else return false
+}
+
+function find_metric(s){
+    //поиск в категориях
+    for(bname in metric){
+        if(s.startsWith(bname)){
+            return({type: 'metric', value: metric[bname]})
+        }
+    }
+    return 0
+}
+
+
 function find_categor(s){
     //поиск в категориях
     for(bname in term_categor){
-        if(s.includes(bname)){
+        if(s.startsWith(bname)){
             return({type: 'categor', value: term_categor[bname]})
         }
     }
@@ -1025,7 +1119,7 @@ function find_categor(s){
 function find_prod(s){
     //поиск в товарах
     for(bname in term_products){
-        if(s.includes(bname)){
+        if(s.startsWith(bname)){
             return({type: 'product', value: term_products[bname]})
         }
     }
@@ -1035,7 +1129,7 @@ function find_prod(s){
 function find_q(s){
     //поиск в вопросах
     for(bname in trem_q){
-        if (s.includes(bname)){
+        if (s.startsWith(bname)){
             return({type: 'q', value: trem_q[bname]})
         }
     }
@@ -1045,7 +1139,7 @@ function find_q(s){
 function find_q_price(s){
     //поиск в вопросах
     for(bname in to_price){
-        if (s.includes(bname)){
+        if (s.startsWith(bname)){
             return({type: 'price', value: to_price[bname]})
         }
     }
@@ -1055,7 +1149,7 @@ function find_q_price(s){
 function find_q_feed(s){
     //поиск в вопросах
     for(bname in to_feed){
-        if (s.includes(bname)){
+        if (s.startsWith(bname)){
             return({type: 'feed', value: to_feed[bname]})
         }
     }
@@ -1066,6 +1160,7 @@ function create_shema(s){
     let arr = s.split(' ')
     let shema = []
     let buf
+    let start_pr, end_pr;
     for(el of arr){
         console.log(el)
         buf = find_q(el)
@@ -1078,6 +1173,23 @@ function create_shema(s){
         if(buf) {shema.push(buf); continue}
         buf = find_prod(el)
         if(buf) {shema.push(buf); continue}
+        buf = find_metric(el)
+        if(buf) {shema.push(buf); continue}
+        buf = isNumber(el)
+        if(buf)
+        {
+            if(start_pr)
+            {
+                start_pr = Number(el)
+                shema.push({type: 'price_w', value: el})
+            }
+            else{
+                end_pr = Number(el)
+                shema.push({type: 'price_w', value: el})
+            }
+            
+        }
+
     }
     return shema
 }
@@ -1089,8 +1201,32 @@ function create_semant_from_shema(shema){
         categor: [],
         products: []
     }
+    
+    let st_fl = true
+    let end_fl = true
 
-    for(elm of shema){
+
+
+    for(index = 0; index < shema.length; index++){
+        let elm = shema[index]
+
+
+        
+        if(elm['type'] == 'metric')
+        {
+            if (st_fl)
+            {
+                semant['where'].push({what: 'price', who: {start: shema[index+1].value}})
+                st_fl = false
+            }
+            else{
+                semant['where'].push({what: 'price', who: {end: shema[index+1].value}})
+            }   
+            
+        }
+
+        
+
         if(elm['type'] == 'q')
         {
             semant['do'].push({what:cross[elm['value']], who:elm['value']})
@@ -1182,164 +1318,217 @@ function create_semant_from_shema(shema){
 function create_res_from_semant(semant)
 {
     let result
+    console.log('составим ответ')
 
     if(!semant.products[0]){
         return('Извините, но я ничем не могу вам помочь, уточните вопрос')
     }
 
-    for(let doing of semant['do'])
+    else{
+
+    
+
+
+    //сдесь сколобарируются все do в запросе
+    //с них будем собирать параметры для сортировки
+    //низшими приоритетами обладает действие простого поиска
+
+    let para = {Price: {min:0, max: 1000}} // сюда собираем параметры
+
+    for(se = 0; se < semant.do.length; se++)
     {
-        if(doing['what'] == 'do' && doing['who'] == 'find')
+
+        console.log(semant.do[se])
+
+        //если ищем цену
+        if(semant.do[se].who == 'price')
         {
-            result = `у нас есть для вас: `
-
-            //действие - поиск
-            let count = 3
-            let i = 0
-            for(elem of semant.products)
+            console.log('мы тут ищем цены')
+            if(semant.where.length == 0)
             {
-                result += `${elem.Name} за ${elem.Price}, `
-                i++
-                if(i > count) break
+                //ищем самые дешевые
+                para['Price'] =  {min: +0, max:+100}
+                
             }
-
-        }
-        if(doing['what'] == 'do' && doing['who'] == 'price')
-        {
-            //если действие это поиск по цене
-
-            console.log('идет поиск по цене')
-
-            let mera = fnd_mr($('.n1'))
-            let mera_nebin = fnd_mr($('.n2'))
-
-            
-
-            let arrObjMeriNeBin = semant.products
-            
-
-            let ret = []
-
-            for(objfind in product_map){
-                if(objfind in dislikes){}
-                else{
-                buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
-                ret.push([buffer__, objfind])
-                }
-            }
-
-            ret.sort(function(a,b){return a[0] - b[0]})
-
-            //параметры под сортировочку
-
-            let ptoSort = {
-                Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
-                Sale: +$('#tt3').val(),
-                Available: ($('#tt4').val() == 'да') ? true : false,
-                Feedback: $('#tt5').val()
-            }
-
-            console.log(ptoSort)
-
-            let sortedRet = sortRet(ret, ptoSort)
-
-
-            let count = 3
-            let iii = 0
-            
-
-            if(sortedRet.length > 0)
+            else
             {
-                result = `Мы нашли продукты для вас: `
 
-                for(i of sortedRet){
-                    result += ` ${i['Name']} ${i['Price']},`
-                    iii++;
-                    if(iii > count) break
+                // ищем какие указали
+                if(semant.where[0]['who'] == "little")
+                {
+                    para['Price'] =  {min: +0, max:+100}
+                }
+                if(semant.where[0]['who'] == "big")
+                {
+                    console.log('большая цена')
+                    para['Price'] =   {min: +200, max:+9999}
                 }
 
             }
-            else{
-                result = `Нет ничего подходящего, но возможно вам понравится <br>`
 
-                for(let t = 0; t < 5; t++){
-                    result += ` ${i['Name']} ${i['Price']}, `
-                    iii++;
-                    if(iii > count) break
-                }
-
-            }
-        }
-        if(doing['what'] == 'do' && doing['who'] == 'feed')
-        {
-            //если действие это поиск по отзыву
-
-            console.log('идет поиск по цене')
-
-            let mera = fnd_mr($('.n1'))
-            let mera_nebin = fnd_mr($('.n2'))
-
-            
-
-            let arrObjMeriNeBin = semant.products
-            
-
-            let ret = []
-
-            for(objfind in product_map){
-                if(objfind in dislikes){}
-                else{
-                buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
-                ret.push([buffer__, objfind])
-                }
-            }
-
-            ret.sort(function(a,b){return a[0] - b[0]})
-
-            //параметры под сортировочку
-
-            let ptoSort = {
-                Price: {min: +$('#tt2').val(), max:+$('#tt1').val()},
-                Sale: +$('#tt3').val(),
-                Available: ($('#tt4').val() == 'да') ? true : false,
-                Feedback: $('#tt5').val()
-            }
-
-            console.log(ptoSort)
-
-            let sortedRet = sortRet(ret, ptoSort)
-
-
-            let count = 3
-            let iii = 0
-            
-
-            if(sortedRet.length > 0)
-            {
-                result = `Мы нашли продукты для вас: `
-
-                for(i of sortedRet){
-                    result += ` ${i['Name']} ${i['Price']},`
-                    iii++;
-                    if(iii > count) break
-                }
-
-            }
-            else{
-                result = `Нет ничего подходящего, но возможно вам понравится <br>`
-
-                for(let t = 0; t < 5; t++){
-                    result += ` ${i['Name']} ${i['Price']}, `
-                    iii++;
-                    if(iii > count) break
-                }
-
-            }
+            console.log(para)
         }
 
+        //если задача поиска продуктов то
+
+        //to do пробегаться по всме where и формировать параметры поиска и в конце найти что-то
+
+        if(semant.do[se].who == 'find') 
+        {
+            console.log('Вот тут смотрим по поиску')
+            
+        
+            // если нету параметров поиска
+            if(semant.where.length == 0)
+            {
+                // по классике ищем самые дешевые
+                para['Price'] = {min: +0, max:+100}
+            }
+            else
+            {
+                // если параметры есть то смотрим что это за параметр
+            
+
+                for(po = 0; po < semant.where.length; po++)
+                {
+                    // сюда соберем все параметры поиска
+
+                    if(semant.where[po].what == 'price')
+                    {
+
+                        if(typeof(semant.where[po]['who']) != String)
+                        {
+                            //если не строка
+                            if(semant.where[po]['who']['start'])
+                            {
+                                para['Price']['min'] = Number(semant.where[po]['who']['start'])
+                            }
+                            if(semant.where[po]['who']['end'])
+                            {
+                                para['Price']['max'] = Number(semant.where[po]['who']['end'])
+                            }
+                        }
+                        // если смотрим по цене то вот так
+                        
+                        
+                        if(semant.where[po]['who'] == "little")
+                        {
+                            console.log('малая цена')
+                            para['Price'] = {min: +0, max:+100}
+                            
+                        }
+                        if(semant.where[po]['who'] == "big")
+                        {
+                            console.log('большая цена')
+                            para['Price'] = {min: +200, max:+9999}
+                            
+                        }
+                        
+                    }
+
+                    if(semant.where[po].what == 'feed')
+                    {
+                        //работа с рейтингами
+
+                        if(semant.where[po].who == 'best')
+                        {
+                            para['Feedback'] = 'отлично'
+                            
+                        }
+                        if(semant.where[po].who == 'good')
+                        {
+                            para['Feedback'] ='хорошо'
+                            
+                        }
+                        if(semant.where[po].who == 'norm')
+                        {
+                            para['Feedback'] ='нормально'
+                        }
+                    }
+                }
+            }
+            
+
+            console.log(para)
+        }
     }
 
+    console.log(semant.products)
+
+    result = fin_prod_sos(semant.products, para)
+    console.log(result)
+
+    
+
+    if(result.length >= 5)
+    {
+        let resbufdel = []
+        for(i = 0; i < 5; i++)
+        {
+            resbufdel.push(result[i])
+        }
+        result = resbufdel
+    }
+    
+
     return result
+    }
+}
+
+function fin_prod_sos(pr, para) // сортировка и поиск по продуктам pr с параметрами сортировки para
+{
+    let mera = fnd_mr($('.n1'))
+    let mera_nebin = fnd_mr($('.n2'))
+
+    arrObjMeriNeBin = pr
+
+    // let kostbuf = []
+    // for (h of pr){ kostbuf.push(h.Name)}
+     
+
+    // let objes = [kostbuf]
+
+    // console.log(objes)
+
+    // let arrObjMeriNeBin = []
+    // for(e of objes){
+    //     arrObjMeriNeBin.push(product_map[e])
+    // }
+
+
+    // console.log(arrObjMeriNeBin)
+
+    //to do
+    //тупа пробросить cmp на каждый из списка 
+    //от каждого из мапы продуктов
+
+    let ret = []
+
+    for(objfind in product_map){
+        if(objfind in dislikes){}
+        else{
+        buffer__ = cpm_vect(product_map[objfind], arrObjMeriNeBin, measure[mera], keys_cpm_vect[mera_nebin])
+        ret.push([buffer__, objfind])
+        }
+    }
+
+    ret.sort(function(a,b){return a[0] - b[0]})
+
+
+
+    ptoSort = para
+
+    let sortedRet = sortRet(ret, ptoSort)
+
+    console.log('sorted ret st')
+    console.log(sortedRet)
+    console.log('str ret end')
+    
+
+    return sortedRet
+
+ 
+
 }
 
 function get_all_products_from_nodes(nodes){
@@ -1388,5 +1577,4 @@ function get_all_products_from_nodes(nodes){
 
     return ret_prod
 }
-
 
