@@ -1,8 +1,15 @@
 function lab2()
+    FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
     clc();
+
+    
 
     a = 0;
     b = 1;
+
+    start_a = a;
+    start_b = b;
+
     epsilon = power(10, -6);
 
     plot_x = linspace(a,b, 99999);
@@ -58,4 +65,10 @@ function lab2()
     fprintf('diff : %d', res_fx - min(plot_fx));
     
 
-    plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_a_x, plot_a_y, '*', plot_b_x, plot_b_y, '*');
+    %plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_a_x, plot_a_y, '*', plot_b_x, plot_b_y, '*');
+    fplot(FX, [start_a, start_b]);
+    hold on;
+    scatter(res_x, res_fx);
+    hold on;
+    plot(plot_a_x, plot_a_y, '*', plot_b_x, plot_b_y, '*');
+    

@@ -1,4 +1,8 @@
+
 function lab1()
+
+    FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
+
     clc();
 
     %Начальные значения
@@ -7,7 +11,7 @@ function lab1()
 
     a = 0;
     b = 1;
-    epsilon = power(10, -2);
+    epsilon = 1e-6;
 
     plot_x = linspace(a,b, 100000);
     plot_fx = FX(plot_x);
@@ -57,7 +61,13 @@ function lab1()
     %Графики
     
     fprintf('1lb\nX* : %d\nf(X*) : %d', res_x, res_fx);
-    plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_xi, plot_fxi, '*');
+    %plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_xi, plot_fxi, '*');
+
+    fplot(FX, [a, b]);
+    hold on;
+    scatter(res_x, res_fx);
+    hold on;
+    plot(plot_xi, plot_fxi, '*');
 
     
 
