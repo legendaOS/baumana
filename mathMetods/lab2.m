@@ -3,17 +3,15 @@ function lab2()
     clc();
 
     
-
+    
     a = 0;
     b = 1;
 
     start_a = a;
     start_b = b;
 
-    epsilon = power(10, -6);
+    epsilon = 0.000001;
 
-    plot_x = linspace(a,b, 99999);
-    plot_fx = FX(plot_x);
 
     plot_a_x = [];
     plot_a_y = [];
@@ -28,6 +26,8 @@ function lab2()
     x2 = a + tau * l;
     f1 = FX(x1);
     f2 = FX(x2);
+
+    N = 2;
 
     while 1
         if l > 2 * epsilon
@@ -47,6 +47,9 @@ function lab2()
                 x2 = a + tau * l;
                 f2 = FX(x2);
             end
+
+            N = N + 1;
+
             plot_a_x(end+1) = a;
             plot_a_y(end+1) = FX(a);
             plot_b_x(end+1) = b;
@@ -59,10 +62,10 @@ function lab2()
     end
 
     res_x = (a + b) / 2;
+    N = N + 1;
     res_fx= FX(res_x);
 
-    fprintf('2lb\nX* : %d\nf(X*) : %d\n', res_x, res_fx);
-    fprintf('diff : %d', res_fx - min(plot_fx));
+    fprintf('N = %d e = %f x* = %f f(x*) = %f\n\n\n', N, epsilon, res_x, res_fx);
     
 
     %plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_a_x, plot_a_y, '*', plot_b_x, plot_b_y, '*');

@@ -11,7 +11,9 @@ function lab1()
 
     a = 0;
     b = 1;
-    epsilon = 1e-6;
+    epsilon = 0.000001;
+
+    N = 1;
 
     plot_x = linspace(a,b, 100000);
     plot_fx = FX(plot_x);
@@ -31,6 +33,7 @@ function lab1()
     
     while 1
 
+        N = N + 1;
         x1 = x0 + delta;
         f1 = FX(x1);
 
@@ -60,7 +63,7 @@ function lab1()
 
     %Графики
     
-    fprintf('1lb\nX* : %d\nf(X*) : %d', res_x, res_fx);
+    fprintf('N = %d e = %f x* = %f f(x*) = %f\n\n\n', N, epsilon, res_x, res_fx);
     %plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_xi, plot_fxi, '*');
 
     fplot(FX, [a, b]);

@@ -11,11 +11,22 @@ function randomArray(length, max) {
     });
 }
 
-function compare(str1, str2){
+function compare(str1, str2){ //str2 - main string str1 - new string
     let mistakes = 0
     if(str1.length != str2.length) return false
     for(i = 0; i < str1.length; i++){
-        if(str1[i] != str2[i]) mistakes += 1
+        let ai = str1[i]
+        let bi = str2[i]
+        let nai = alphabet.indexOf(ai)
+        let nbi = alphabet.indexOf(bi)
+
+        if(nbi >= nai){
+            mistakes += nbi - nai
+        }   
+        else{
+            mistakes += alphabet.length - nbi + nai
+        }
+        
     }
     return mistakes
 }
@@ -101,7 +112,7 @@ function allChange(arr_of_str, count_of_best, childs, changes, mainstr){
 //MAIN
 
 let mainFirstString = "12345"
-const alphabet = `1234567890`
+const alphabet = `абвгдеёжзийклмнопрстуфхцчшщъыьэюя1234567890 `
 let N = mainFirstString.length
 let randString = ""
 let childrens
