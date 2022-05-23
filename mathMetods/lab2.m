@@ -1,5 +1,6 @@
 function lab2()
-    FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
+    %FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
+    FX = @(x) (x-0.777).^12;
     clc();
 
     
@@ -50,6 +51,8 @@ function lab2()
 
             N = N + 1;
 
+            fprintf('N %d a %.10f x1 %.10f x2 %.10f b %.10f\n',N, a, x1, x2, b);
+
             plot_a_x(end+1) = a;
             plot_a_y(end+1) = FX(a);
             plot_b_x(end+1) = b;
@@ -65,7 +68,7 @@ function lab2()
     N = N + 1;
     res_fx= FX(res_x);
 
-    fprintf('N = %d e = %f x* = %f f(x*) = %f\n\n\n', N, epsilon, res_x, res_fx);
+    fprintf('N %d eps %.10f x* %.10f fx*  %.10f\n', N, epsilon, res_x, res_fx);
     
 
     %plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_a_x, plot_a_y, '*', plot_b_x, plot_b_y, '*');

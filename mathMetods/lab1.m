@@ -1,13 +1,12 @@
 
 function lab1()
 
-    FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
-
+    %FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
+     FX = @(x) (x-0.777).^6;
     clc();
 
     %Начальные значения
 
-        %Целевая функция описана в файле lab1func.m
 
     a = 0;
     b = 1;
@@ -37,6 +36,8 @@ function lab1()
         x1 = x0 + delta;
         f1 = FX(x1);
 
+        fprintf('N = %d e = %f x* = %.10f f(x*) = %f\n\n\n', N, epsilon, x1, f1);
+
         plot_xi(end+1) = x1;
         plot_fxi(end+1) = f1;
 
@@ -64,6 +65,7 @@ function lab1()
     %Графики
     
     fprintf('N = %d e = %f x* = %f f(x*) = %f\n\n\n', N, epsilon, res_x, res_fx);
+    res_x - 0.777
     %plot(plot_x, plot_fx, res_x, res_fx, 'o', plot_xi, plot_fxi, '*');
 
     fplot(FX, [a, b]);

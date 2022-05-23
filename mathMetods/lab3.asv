@@ -10,7 +10,7 @@ function lab3()
     start_a = a;
     start_b = b;
 
-    epsilon = 0.000001;
+    epsilon = 0.000000001;
 
     fprintf('Выбираем пробные точки методом золотого сечения\n');
 
