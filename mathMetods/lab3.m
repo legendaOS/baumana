@@ -1,6 +1,6 @@
 function lab3()
-    FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
-    %FX = @(x) (x-0.777).^12;
+    %FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
+    FX = @(x) (x-0.777).^112;
     clc();
 
     a = 0;
@@ -147,10 +147,10 @@ function lab3()
         
 
         if abs(x_ - x__) <= epsilon
-            if abs(l - l_) <= 2*epsilon
+            %if abs(l - l_) <= 2*epsilon
         
                 break;
-            end
+            %end
         end
 
         l = l_;
@@ -162,6 +162,7 @@ function lab3()
     res_fx = f_;
 
     fprintf('N = %d x* = %.10f f* = %.10f\n', N, res_x, res_fx);
+    res_x - 0.777
 
     fplot(FX, [start_a, start_b]);
     hold on;

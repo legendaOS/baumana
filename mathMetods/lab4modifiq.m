@@ -1,9 +1,9 @@
-function lab4()
+function lab4modifiq()
     clc();
 
-    %FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
+    FX = @(x) (cos(power(x,5) - x + 3 + power(2, 1/3)) + atan( (power(x,3) - 5 * sqrt(2)*x - 4) / (sqrt(6)*x + sqrt(x)) ) + 1.8);
     
-    FX = @(x) (x-0.777)^4;
+    %FX = @(x) (x-0.777)^4;
 
     N = 0;  
     iter = 0;
@@ -17,6 +17,13 @@ function lab4()
     f2 = 200;
 
     x = (a+b)/2;
+
+    FXpd0 = FX(x+delta);
+    FXmd0 = FX(x-delta);
+
+    f1x0 = (FXpd0-FXmd0);
+    f1x0 = f1x0 / 2;
+    f1x0 = f1x0 / delta;
 
     while 1
         FXpd = FX(x+delta);
@@ -33,7 +40,7 @@ function lab4()
 
         %вторая производная
         
-        f2 = (FXmd-2*FXx+FXpd);
+        f2 = (FXpd-2*FXx+FXmd);
         f2 = f2 / (delta * delta);
 
         
@@ -41,19 +48,18 @@ function lab4()
 
         %очередное приближение
 
-        x = x - f1/f2;
+        x = x - f1x0/f2;
         
         iter = iter +1;
 
         fprintf('х = %.10f, f1 = %.10f итерация %d, обращений к целевой ф-и = %d\n',x , f1 ,iter, N);
-        
 
         %условие выхода
 
         if abs(f1)<=epsilon
-            if abs(x_ - x) <= 2*epsilon
+            %if abs(x_ - x) <= 2*epsilon
                 break;
-            end
+            %end
         end
 
     end
@@ -66,7 +72,6 @@ function lab4()
 
 
     fprintf('\n F* = %.10f x* = %.10f iter = %d N = %d\n\n', res_fx, res_x, iter, N);
-    x - 0.777
     fplot(FX, [a, b]);
     hold on;
     scatter(res_x, res_fx, '*');
